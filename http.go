@@ -234,10 +234,9 @@ func (a *app) routeGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Serve the requested file.
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", dump.contentType)
 	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(data)))
 	w.Header().Set("Content-Disposition", "inline")
-
+	w.WriteHeader(http.StatusOK)
 	w.Write(data)
 }
