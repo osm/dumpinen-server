@@ -27,6 +27,7 @@ $ ./dumpinen-server \
 	-port 8080 \
 	-pub-key $(grep "public key:" agekey.txt | awk '{ print $NF }') \
 	-priv-key $(tail -n1 agekey.txt)
+```
 
 ## Upload examples
 
