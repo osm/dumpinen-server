@@ -90,8 +90,16 @@ func (a *app) routePost(w http.ResponseWriter, r *http.Request) {
 		deleteAfter = time.Now().Local().Add(d)
 	}
 
-	// Determine content type and generate ids for the file.
-	contentType := http.DetectContentType(data)
+	// If the contentType query parameter is set we'll use that, if not
+	// we'll try to autodetected the content type.
+	var contentType string
+	if c, ok := r.URL.Query()["contentType"]; ok {
+		contentType = c[0]
+	} else {
+		contentType = http.DetectContentType(data)
+	}
+
+	// Generate the IDs.
 	filesystemID := newUUID()
 	publicID := newPublicFileID()
 

@@ -68,9 +68,20 @@ $ curl -u foo:bar http://localhost:8080/N64agNx9woL
 foo
 ```
 
+### Upload a file with a custom content type
+
+
+```sh
+$ echo "foo" >/tmp/foo.txt
+$ curl --data-binary @/tmp/foo.txt http://localhost:8080?contentType=plain/text
+n5-IluF9tsq
+$ curl http://localhost:8080/n5-IluF9tsq
+foo
+```
+
 ## Routes
 
-| Method | Route  | Query parameters     |
-| ------ | ------ | -------------------- |
-| POST   | /      | deleteAfter=duration |
-| GET    | /:id   |                      |
+| Method | Route  | Query parameters                              |
+| ------ | ------ | --------------------------------------------- |
+| POST   | /      | deleteAfter=duration, contentType=contentType |
+| GET    | /:id   |                                               |
