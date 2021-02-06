@@ -8,6 +8,7 @@ WGBtm-RLJkE
 
 # Get dump.
 curl https://dumpinen.com/WGBtm-RLJkE
+foo
 
 # Dump "foo" and delete it after ten minutes.
 echo "foo" | curl --data-binary @- https://dumpinen.com?deleteAfter=10m
