@@ -40,7 +40,9 @@ func (a *app) router(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 
 	// Route the request to the correct handler.
-	if r.Method == http.MethodPost {
+	if r.Method == http.MethodGet && r.URL.Path == "/" {
+		w.Write([]byte(man))
+	} else if r.Method == http.MethodPost && r.URL.Path == "/" {
 		a.routePost(w, r)
 	} else {
 		a.routeGet(w, r)
