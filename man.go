@@ -1,6 +1,6 @@
 package main
 
-const man = `File dump service
+const man = `File dump service.
 
 # Dump "foo":
 echo "foo" | curl --data-binary @- https://dumpinen.com
@@ -20,6 +20,7 @@ NbbMcLcGcA9
 
 # Get the password protected dump:
 curl --user foo:bar https://dumpinen.com/NbbMcLcGcA9
+foo
 
 # Library/CLI code:
 https://github.com/osm/dumpinen
