@@ -41,7 +41,7 @@ func (a *app) router(w http.ResponseWriter, r *http.Request) {
 
 	// Route the request to the correct handler.
 	if r.Method == http.MethodGet && r.URL.Path == "/" {
-		w.Write([]byte(man))
+		w.Write([]byte(man + "\r\n"))
 	} else if r.Method == http.MethodPost && r.URL.Path == "/" {
 		a.routePost(w, r)
 	} else {
