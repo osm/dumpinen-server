@@ -153,7 +153,7 @@ func (a *app) routePost(w http.ResponseWriter, r *http.Request) {
 
 // routeGet handles the v1 dump GET request.
 func (a *app) routeGet(w http.ResponseWriter, r *http.Request) {
-	log.Printf("dump get request from %s\n", r.RemoteAddr)
+	log.Printf("dump get request from %s, to %s\n", r.RemoteAddr, r.URL.Path)
 
 	// Discard the / in the beginning of the path.
 	publicID := r.URL.Path[1:]
