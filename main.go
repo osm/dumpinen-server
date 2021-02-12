@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"flag"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -31,10 +32,12 @@ type app struct {
 	maxFileSize int64
 	recipient   *age.X25519Recipient
 	identity    *age.X25519Identity
+	uiTpl       *template.Template
+	urlScheme   string
 }
 
 // newApp returns a new app.
-func newApp(db *db, dataDir, port, pubKey, privKey string, maxFileSize int64) (*app, error) {
+func newApp(db *db, dataDir, port, pubKey, privKey string, maxFileSize int64, ui bool) (*app, error) {
 	app := &app{
 		db:          db,
 		dataDir:     dataDir,
@@ -46,15 +49,22 @@ func newApp(db *db, dataDir, port, pubKey, privKey string, maxFileSize int64) (*
 	// parse before we procced.
 	recipient, err := age.ParseX25519Recipient(pubKey)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse public key %q: %v", pubKey, err)
+		return nil, fmt.Errorf("failed to parse public key: %v", err)
 	}
 	app.recipient = recipient
 
 	identity, err := age.ParseX25519Identity(privKey)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse private key: %v", err)
+		return nil, fmt.Errorf("failed to parse private key: %v", err)
 	}
 	app.identity = identity
+
+	if ui {
+		app.uiTpl, err = template.New("ui").Parse(uiHTML)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse html template: %v", err)
+		}
+	}
 
 	return app, nil
 }
@@ -75,6 +85,7 @@ func main() {
 	port := flag.String("port", "80", "port to listen on, the port is only used if domain is localhost")
 	privKey := flag.String("priv-key", "", "private age enryption key")
 	pubKey := flag.String("pub-key", "", "public age enryption key")
+	ui := flag.Bool("ui", false, "enable html ui")
 	flen.SetEnvPrefix("DUMPINEN")
 	flen.Parse()
 
@@ -112,7 +123,7 @@ func main() {
 	}
 
 	// Create a new app structure and launch the app.
-	app, err := newApp(db, *dataDir, *port, *pubKey, *privKey, *maxFileSize)
+	app, err := newApp(db, *dataDir, *port, *pubKey, *privKey, *maxFileSize, *ui)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "new app error: %v\n", err)
 		return
@@ -131,10 +142,12 @@ func main() {
 	// certificate from let's encrypt. We will also not care about the
 	// -port flag in this case, instead we'll listen to port 80 and 443.
 	if *letsEncryptDomain == "" {
+		app.urlScheme = "http"
 		if err := http.ListenAndServe(":"+*port, mux); err != nil {
 			log.Fatalf("fatal error: %v\n", err)
 		}
 	} else {
+		app.urlScheme = "https"
 		certManager := autocert.Manager{
 			Prompt:     autocert.AcceptTOS,
 			HostPolicy: autocert.HostWhitelist(*letsEncryptDomain),

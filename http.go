@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"crypto/subtle"
 	"database/sql"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -41,12 +43,172 @@ func (a *app) router(w http.ResponseWriter, r *http.Request) {
 
 	// Route the request to the correct handler.
 	if r.Method == http.MethodGet && r.URL.Path == "/" {
-		w.Write([]byte(man + "\r\n"))
+		if a.uiTpl == nil {
+			w.Write([]byte(man + "\r\n"))
+		} else {
+			a.routeUIMain(w)
+		}
+	} else if a.uiTpl != nil && r.Method == http.MethodGet && r.URL.Path == "/text" {
+		a.routeUIText(w)
+	} else if a.uiTpl != nil && r.Method == http.MethodGet && r.URL.Path == "/file" {
+		a.routeUIFile(w)
 	} else if r.Method == http.MethodPost && r.URL.Path == "/" {
 		a.routePost(w, r)
+	} else if r.Method == http.MethodPost && r.URL.Path == "/dump" {
+		a.routePostUI(w, r)
 	} else {
 		a.routeGet(w, r)
 	}
+}
+
+// routeUIMain renders the main page for the UI.
+func (a *app) routeUIMain(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	a.uiTpl.Execute(w, UI{IsMain: true})
+}
+
+// routeUIText renders the text upload page UI.
+func (a *app) routeUIText(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	a.uiTpl.Execute(w, UI{IsText: true})
+}
+
+// routeUIFile renders the file upload page UI.
+func (a *app) routeUIFile(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	a.uiTpl.Execute(w, UI{IsFile: true})
+}
+
+// routeUIErr renders the error page UI.
+func (a *app) routeUIErr(w http.ResponseWriter, status int, text string) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(status)
+	a.uiTpl.Execute(w, UI{IsError: true, ErrorText: text})
+}
+
+// routePostUI handles POST requests from the HTML UI.
+func (a *app) routePostUI(w http.ResponseWriter, r *http.Request) {
+	log.Printf("dump post request from ui %s\n", r.RemoteAddr)
+
+	// Set the max bytes reader for the request and parse the form.
+	r.Body = http.MaxBytesReader(w, r.Body, a.maxFileSize)
+
+	// Parse the form, if we don't have a file upload we can check for the
+	// payload to not be too big here.
+	var err error
+	err = r.ParseForm()
+	if err != nil {
+		if err.Error() == "http: request body too large" {
+			log.Printf("dump rejected, payload too big\n")
+			a.routeUIErr(w, http.StatusBadRequest, "Dump rejected, request body too large")
+			return
+		}
+		a.routeUIErr(w, http.StatusInternalServerError, "Internal server error")
+		return
+	}
+
+	// Let's try to determine which kind of data that was dumped to us and
+	// do some basic error checking.
+	var data []byte
+	if t := r.FormValue("text"); t != "" {
+		// If there's a form value for the text key we'll assume that we've
+		// got a plaintext upload and treat it as such.
+		data = []byte(t)
+	} else {
+		// It looks like we've got a file upload, try to parse the
+		// data.
+		file, _, err := r.FormFile("file")
+		if err != nil {
+			if err.Error() == "multipart: NextPart: http: request body too large" {
+				log.Printf("dump rejected, payload too big\n")
+				a.routeUIErr(w, http.StatusBadRequest, "Dump rejected, request body too large")
+				return
+			}
+			a.routeUIErr(w, http.StatusInternalServerError, "Internal server error")
+			return
+		}
+		defer file.Close()
+
+		buf := bytes.NewBuffer(nil)
+		if _, err := io.Copy(buf, file); err != nil {
+			a.routeUIErr(w, http.StatusInternalServerError, "Internal server error")
+			return
+		}
+
+		data = buf.Bytes()
+	}
+
+	// Check if the user submitted a deleteAfter value and make sure that
+	// the value is valid.
+	var deleteAfter time.Time
+	if da := r.FormValue("deleteAfter"); da != "" {
+		d, err := time.ParseDuration(da)
+		if err != nil {
+			log.Printf("error when parsing delete after duration: %v\n", err)
+			a.routeUIErr(w, http.StatusBadRequest, "Invalid deleteAfter duration")
+			return
+		}
+		deleteAfter = time.Now().Local().Add(d)
+	}
+
+	// If the contentType value is set we'll use that, if not we'll try to
+	// autodetected the content type.
+	var contentType string
+	if c := r.FormValue("contentType"); c != "" {
+		contentType = c
+	} else {
+		contentType = http.DetectContentType([]byte(data))
+	}
+
+	// Generate the IDs.
+	filesystemID := newUUID()
+	publicID := newPublicFileID()
+
+	// If we've values for username and password in the form we'll use
+	// that to protect the dump.
+	var username, password []byte
+	u := r.FormValue("username")
+	p := r.FormValue("password")
+	if u != "" && p != "" {
+		if username, err = a.encrypt(u); err != nil {
+			log.Printf("error when encrypting username, %v\n", err)
+			a.routeUIErr(w, http.StatusInternalServerError, "Internal server error")
+			return
+		}
+		if password, err = a.encrypt(p); err != nil {
+			log.Printf("error when encrypting username, %v\n", err)
+			a.routeUIErr(w, http.StatusInternalServerError, "Internal server error")
+			return
+		}
+	}
+
+	// Insert the dump into the database.
+	err = a.db.insertDump(&dump{
+		contentType:  contentType,
+		deleteAfter:  deleteAfter,
+		filesystemID: filesystemID,
+		ipAddress:    r.RemoteAddr,
+		password:     &password,
+		publicID:     publicID,
+		username:     &username,
+	})
+	if err != nil {
+		log.Printf("insert dump error: %v\n", err)
+		a.routeUIErr(w, http.StatusInternalServerError, "Internal server error")
+		return
+	}
+
+	// Store the actual contents of the file in the database.
+	if err = ioutil.WriteFile(filepath.Join(a.dataDir, filesystemID), []byte(data), 0440); err != nil {
+		log.Printf("write file error: %v\n", err)
+		a.routeUIErr(w, http.StatusInternalServerError, "Internal server error")
+		a.db.deleteDumpByFilesystemID(filesystemID)
+		return
+	}
+
+	// Redirect the user to the dumped file.
+	log.Printf("dump stored with public id at %s\n", publicID)
+	http.Redirect(w, r, fmt.Sprintf("%s://%s/%s", a.urlScheme, r.Host, publicID), 301)
 }
 
 // routePost handles the v1 dump POST request.
@@ -70,7 +232,7 @@ func (a *app) routePost(w http.ResponseWriter, r *http.Request) {
 		if int64(len(data)) >= a.maxFileSize {
 			log.Printf("dump rejected, payload too big\n")
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("request payload too big\r\n"))
+			w.Write([]byte("dump rejected, request body too large\r\n"))
 			return
 		}
 		log.Printf("error on dump: %v\n", err)
