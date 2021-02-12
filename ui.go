@@ -176,7 +176,7 @@ const uiHTML = `<!DOCTYPE html>
 							<p>Select the file to dump.</p>
 						</div>
 						<div class="rowNarrow">
-							<input autofocus type="file" name="file">
+							<input autofocus required type="file" name="file">
 						</div>
 					</div>
 					{{end}}
