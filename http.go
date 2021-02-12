@@ -13,6 +13,32 @@ import (
 	"time"
 )
 
+// router handles all incoming requests and forwards them to the correct
+// location.
+func (a *app) router(w http.ResponseWriter, r *http.Request) {
+	// Set content type to text/plain for all responses.
+	w.Header().Set("Content-Type", "text/plain")
+
+	// Route the request to the correct handler.
+	if r.Method == http.MethodGet && r.URL.Path == "/" {
+		if a.uiTpl == nil {
+			w.Write(a.getManText(r.Host))
+		} else {
+			a.routeUIMain(w, r)
+		}
+	} else if a.uiTpl != nil && r.Method == http.MethodGet && r.URL.Path == "/text" {
+		a.routeUIText(w, r)
+	} else if a.uiTpl != nil && r.Method == http.MethodGet && r.URL.Path == "/file" {
+		a.routeUIFile(w, r)
+	} else if r.Method == http.MethodPost && r.URL.Path == "/" {
+		a.routePost(w, r)
+	} else if r.Method == http.MethodPost && r.URL.Path == "/dump" {
+		a.routePostUI(w, r)
+	} else {
+		a.routeGet(w, r)
+	}
+}
+
 // notFound sets the status code to not found and writes a "not found" message
 // to the response writer.
 func notFound(w http.ResponseWriter) {
@@ -35,55 +61,29 @@ func unauthorized(w http.ResponseWriter) {
 	w.Write([]byte("unauthorized\r\n"))
 }
 
-// router handles all incoming requests and forwards them to the correct
-// location.
-func (a *app) router(w http.ResponseWriter, r *http.Request) {
-	// Set content type to text/plain for all responses.
-	w.Header().Set("Content-Type", "text/plain")
-
-	// Route the request to the correct handler.
-	if r.Method == http.MethodGet && r.URL.Path == "/" {
-		if a.uiTpl == nil {
-			w.Write([]byte(man + "\r\n"))
-		} else {
-			a.routeUIMain(w)
-		}
-	} else if a.uiTpl != nil && r.Method == http.MethodGet && r.URL.Path == "/text" {
-		a.routeUIText(w)
-	} else if a.uiTpl != nil && r.Method == http.MethodGet && r.URL.Path == "/file" {
-		a.routeUIFile(w)
-	} else if r.Method == http.MethodPost && r.URL.Path == "/" {
-		a.routePost(w, r)
-	} else if r.Method == http.MethodPost && r.URL.Path == "/dump" {
-		a.routePostUI(w, r)
-	} else {
-		a.routeGet(w, r)
-	}
-}
-
 // routeUIMain renders the main page for the UI.
-func (a *app) routeUIMain(w http.ResponseWriter) {
+func (a *app) routeUIMain(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	a.uiTpl.Execute(w, UI{IsMain: true})
+	a.uiTpl.Execute(w, UI{IsMain: true, Host: fmt.Sprintf("%s://%s", a.urlScheme, r.Host)})
 }
 
 // routeUIText renders the text upload page UI.
-func (a *app) routeUIText(w http.ResponseWriter) {
+func (a *app) routeUIText(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	a.uiTpl.Execute(w, UI{IsText: true})
+	a.uiTpl.Execute(w, UI{IsText: true, Host: fmt.Sprintf("%s://%s", a.urlScheme, r.Host)})
 }
 
 // routeUIFile renders the file upload page UI.
-func (a *app) routeUIFile(w http.ResponseWriter) {
+func (a *app) routeUIFile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	a.uiTpl.Execute(w, UI{IsFile: true})
+	a.uiTpl.Execute(w, UI{IsFile: true, Host: fmt.Sprintf("%s://%s", a.urlScheme, r.Host)})
 }
 
 // routeUIErr renders the error page UI.
-func (a *app) routeUIErr(w http.ResponseWriter, status int, text string) {
+func (a *app) routeUIErr(w http.ResponseWriter, r *http.Request, status int, text string) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(status)
-	a.uiTpl.Execute(w, UI{IsError: true, ErrorText: text})
+	a.uiTpl.Execute(w, UI{IsError: true, ErrorText: text, Host: fmt.Sprintf("%s://%s", a.urlScheme, r.Host)})
 }
 
 // routePostUI handles POST requests from the HTML UI.
@@ -100,10 +100,10 @@ func (a *app) routePostUI(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if err.Error() == "http: request body too large" {
 			log.Printf("dump rejected, payload too big\n")
-			a.routeUIErr(w, http.StatusBadRequest, "Dump rejected, request body too large")
+			a.routeUIErr(w, r, http.StatusBadRequest, "Dump rejected, request body too large")
 			return
 		}
-		a.routeUIErr(w, http.StatusInternalServerError, "Internal server error")
+		a.routeUIErr(w, r, http.StatusInternalServerError, "Internal server error")
 		return
 	}
 
@@ -121,17 +121,17 @@ func (a *app) routePostUI(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			if err.Error() == "multipart: NextPart: http: request body too large" {
 				log.Printf("dump rejected, payload too big\n")
-				a.routeUIErr(w, http.StatusBadRequest, "Dump rejected, request body too large")
+				a.routeUIErr(w, r, http.StatusBadRequest, "Dump rejected, request body too large")
 				return
 			}
-			a.routeUIErr(w, http.StatusInternalServerError, "Internal server error")
+			a.routeUIErr(w, r, http.StatusInternalServerError, "Internal server error")
 			return
 		}
 		defer file.Close()
 
 		buf := bytes.NewBuffer(nil)
 		if _, err := io.Copy(buf, file); err != nil {
-			a.routeUIErr(w, http.StatusInternalServerError, "Internal server error")
+			a.routeUIErr(w, r, http.StatusInternalServerError, "Internal server error")
 			return
 		}
 
@@ -145,7 +145,7 @@ func (a *app) routePostUI(w http.ResponseWriter, r *http.Request) {
 		d, err := time.ParseDuration(da)
 		if err != nil {
 			log.Printf("error when parsing delete after duration: %v\n", err)
-			a.routeUIErr(w, http.StatusBadRequest, "Invalid deleteAfter duration")
+			a.routeUIErr(w, r, http.StatusBadRequest, "Invalid deleteAfter duration")
 			return
 		}
 		deleteAfter = time.Now().Local().Add(d)
@@ -172,12 +172,12 @@ func (a *app) routePostUI(w http.ResponseWriter, r *http.Request) {
 	if u != "" && p != "" {
 		if username, err = a.encrypt(u); err != nil {
 			log.Printf("error when encrypting username, %v\n", err)
-			a.routeUIErr(w, http.StatusInternalServerError, "Internal server error")
+			a.routeUIErr(w, r, http.StatusInternalServerError, "Internal server error")
 			return
 		}
 		if password, err = a.encrypt(p); err != nil {
 			log.Printf("error when encrypting username, %v\n", err)
-			a.routeUIErr(w, http.StatusInternalServerError, "Internal server error")
+			a.routeUIErr(w, r, http.StatusInternalServerError, "Internal server error")
 			return
 		}
 	}
@@ -194,14 +194,14 @@ func (a *app) routePostUI(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		log.Printf("insert dump error: %v\n", err)
-		a.routeUIErr(w, http.StatusInternalServerError, "Internal server error")
+		a.routeUIErr(w, r, http.StatusInternalServerError, "Internal server error")
 		return
 	}
 
 	// Store the actual contents of the file in the database.
 	if err = ioutil.WriteFile(filepath.Join(a.dataDir, filesystemID), []byte(data), 0440); err != nil {
 		log.Printf("write file error: %v\n", err)
-		a.routeUIErr(w, http.StatusInternalServerError, "Internal server error")
+		a.routeUIErr(w, r, http.StatusInternalServerError, "Internal server error")
 		a.db.deleteDumpByFilesystemID(filesystemID)
 		return
 	}

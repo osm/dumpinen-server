@@ -6,13 +6,14 @@ type UI struct {
 	IsFile    bool
 	IsError   bool
 	ErrorText string
+	Host      string
 }
 
 const uiHTML = `<!DOCTYPE html>
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<title>dumpinen.com</title>
+		<title>dumpinen</title>
 		<style type="text/css">
 			a {
 				color: #000000;
@@ -81,7 +82,7 @@ const uiHTML = `<!DOCTYPE html>
 						# Dump "foo":
 					</div>
 					<div class="rowNarrow">
-						echo "foo" | curl --data-binary @- https://dumpinen.com
+						echo "foo" | curl --data-binary @- {{.Host}}
 					</div>
 					<div class="rowNarrow">
 						WGBtm-RLJkE
@@ -92,7 +93,7 @@ const uiHTML = `<!DOCTYPE html>
 						# Get dump:
 					</div>
 					<div class="rowNarrow">
-						curl https://dumpinen.com/WGBtm-RLJkE
+						curl {{.Host}}/WGBtm-RLJkE
 					</div>
 					<div class="rowNarrow">
 						foo
@@ -103,7 +104,7 @@ const uiHTML = `<!DOCTYPE html>
 						# Dump "foo" and delete it after ten minutes:
 					</div>
 					<div class="rowNarrow">
-						echo "foo" | curl --data-binary @- https://dumpinen.com?deleteAfter=10m
+						echo "foo" | curl --data-binary @- {{.Host}}?deleteAfter=10m
 					</div>
 					<div class="rowNarrow">
 						Tuo3wgzdBVX
@@ -114,7 +115,7 @@ const uiHTML = `<!DOCTYPE html>
 						# Dump "foo" and password protect it:
 					</div>
 					<div class="rowNarrow">
-						echo "foo" | curl --data-binary @- --user foo:bar https://dumpinen.com
+						echo "foo" | curl --data-binary @- --user foo:bar {{.Host}}
 					</div>
 					<div class="rowNarrow">
 						NbbMcLcGcA9
@@ -125,7 +126,7 @@ const uiHTML = `<!DOCTYPE html>
 						# Get the password protected dump:
 					</div>
 					<div class="rowNarrow">
-						curl --user foo:bar https://dumpinen.com/NbbMcLcGcA9
+						curl --user foo:bar {{.Host}}/NbbMcLcGcA9
 					</div>
 					<div class="rowNarrow">
 						foo
