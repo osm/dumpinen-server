@@ -310,7 +310,7 @@ func (a *app) routePost(w http.ResponseWriter, r *http.Request) {
 	// Set http status code to 201 and return the URL to the stored file.
 	log.Printf("dump stored with public id at %s\n", publicID)
 	w.WriteHeader(http.StatusCreated)
-	fmt.Fprintf(w, "%s\r\n", publicID)
+	fmt.Fprintf(w, "%s://%s/%s\r\n", a.urlScheme, r.Host, publicID)
 }
 
 // routeGet handles the v1 dump GET request.
