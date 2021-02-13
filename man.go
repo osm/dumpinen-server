@@ -10,7 +10,7 @@ func (a *app) getManText(host string) []byte {
 
 # Dump "foo":
 echo "foo" | curl --data-binary @- %s
-WGBtm-RLJkE
+%s/WGBtm-RLJkE
 
 # Get dump:
 curl %s/WGBtm-RLJkE
@@ -18,11 +18,11 @@ foo
 
 # Dump "foo" and delete it after ten minutes:
 echo "foo" | curl --data-binary @- %s?deleteAfter=10m
-Tuo3wgzdBVX
+%s/Tuo3wgzdBVX
 
 # Dump "foo" and password protect it:
 echo "foo" | curl --data-binary @- --user foo:bar %s
-NbbMcLcGcA9
+%s/NbbMcLcGcA9
 
 # Get the password protected dump:
 curl --user foo:bar %s/NbbMcLcGcA9
@@ -32,7 +32,7 @@ foo
 https://github.com/osm/dumpinen
 
 # Server code:
-https://github.com/osm/dumpinen-server`, h, h, h, h, h)
+https://github.com/osm/dumpinen-server`, h, h, h, h, h, h, h, h)
 
 	return []byte(man + "\r\n")
 }

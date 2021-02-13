@@ -93,7 +93,7 @@ const uiHTML = `<!DOCTYPE html>
 						echo "foo" | curl --data-binary @- {{.Host}}
 					</div>
 					<div class="rowNarrow">
-						WGBtm-RLJkE
+						{{.Host}}/WGBtm-RLJkE
 					</div>
 				</div>
 				<div class="row">
@@ -115,7 +115,7 @@ const uiHTML = `<!DOCTYPE html>
 						echo "foo" | curl --data-binary @- {{.Host}}?deleteAfter=10m
 					</div>
 					<div class="rowNarrow">
-						Tuo3wgzdBVX
+						{{.Host}}/Tuo3wgzdBVX
 					</div>
 				</div>
 				<div class="row">
@@ -126,7 +126,7 @@ const uiHTML = `<!DOCTYPE html>
 						echo "foo" | curl --data-binary @- --user foo:bar {{.Host}}
 					</div>
 					<div class="rowNarrow">
-						NbbMcLcGcA9
+						{{.Host}}/NbbMcLcGcA9
 					</div>
 				</div>
 				<div class="row">
