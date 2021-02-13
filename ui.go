@@ -13,6 +13,7 @@ const uiHTML = `<!DOCTYPE html>
 <html>
 	<head>
 		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>dumpinen</title>
 		<style type="text/css">
 			a {
@@ -43,6 +44,13 @@ const uiHTML = `<!DOCTYPE html>
 			}
 			.active {
 				font-weight: bold;
+			}
+			textarea {
+				-webkit-box-sizing: border-box;
+				-moz-box-sizing: border-box;
+				box-sizing: border-box;
+				width: 100%;
+				height: 50vh;
 			}
 		</style>
 	</head>
@@ -166,7 +174,7 @@ const uiHTML = `<!DOCTYPE html>
 							<p>Enter the text to dump.</p>
 						</div>
 						<div class="rowNarrow">
-							<textarea autofocus required name="text" rows="24" cols="78"></textarea>
+							<textarea autofocus required name="text"></textarea>
 						</div>
 					</div>
 					{{end}}
