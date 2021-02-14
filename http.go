@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -21,7 +22,7 @@ func (a *app) router(w http.ResponseWriter, r *http.Request) {
 
 	// Route the request to the correct handler.
 	if r.Method == http.MethodGet && r.URL.Path == "/" {
-		if a.uiTpl == nil {
+		if a.uiTpl == nil || strings.HasPrefix(r.Header.Get("User-Agent"), "curl") {
 			w.Write(a.getManText(r.Host))
 		} else {
 			a.routeUIMain(w, r)
