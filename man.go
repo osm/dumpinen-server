@@ -6,7 +6,9 @@ import (
 
 func (a *app) getManText(host string) []byte {
 	h := fmt.Sprintf("%s://%s", a.urlScheme, host)
-	man := fmt.Sprintf(`File dump service.
+	man := fmt.Sprintf(`Dumpinen is a free text and file dumping service.
+
+You are not allowed to store illegal content on dumpinen.
 
 # Dump "foo":
 echo "foo" | curl --data-binary @- %s

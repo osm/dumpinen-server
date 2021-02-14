@@ -30,6 +30,8 @@ func (a *app) router(w http.ResponseWriter, r *http.Request) {
 		a.routeUIText(w, r)
 	} else if a.uiTpl != nil && r.Method == http.MethodGet && r.URL.Path == "/file" {
 		a.routeUIFile(w, r)
+	} else if a.uiTpl != nil && r.Method == http.MethodGet && r.URL.Path == "/about" {
+		a.routeUIAbout(w, r)
 	} else if r.Method == http.MethodPost && r.URL.Path == "/" {
 		a.routePost(w, r)
 	} else if r.Method == http.MethodPost && r.URL.Path == "/dump" {
@@ -77,6 +79,12 @@ func (a *app) routeUIText(w http.ResponseWriter, r *http.Request) {
 func (a *app) routeUIFile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	a.uiTpl.Execute(w, UI{IsFile: true, Host: fmt.Sprintf("%s://%s", a.urlScheme, r.Host)})
+}
+
+// routeUIAbout renders the about page UI.
+func (a *app) routeUIAbout(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	a.uiTpl.Execute(w, UI{IsAbout: true, Host: fmt.Sprintf("%s://%s", a.urlScheme, r.Host)})
 }
 
 // routeUIErr renders the error page UI.

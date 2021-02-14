@@ -4,6 +4,7 @@ type UI struct {
 	IsMain    bool
 	IsText    bool
 	IsFile    bool
+	IsAbout   bool
 	IsError   bool
 	ErrorText string
 	Host      string
@@ -69,9 +70,14 @@ const uiHTML = `<!DOCTYPE html>
 					<a href="/text">text</a> |
 					{{end}}
 					{{if .IsFile }}
-					<a class="active" hreF="/file">file</a>
+					<a class="active" hreF="/file">file</a> |
 					{{else}}
-					<a hreF="/file">file</a>
+					<a hreF="/file">file</a> |
+					{{end}}
+					{{if .IsAbout}}
+					<a class="active" hreF="/about">about</a>
+					{{else}}
+					<a hreF="/about">about</a>
 					{{end}}
 				</nav>
 			</div>
@@ -140,19 +146,26 @@ const uiHTML = `<!DOCTYPE html>
 						foo
 					</div>
 				</div>
+				{{end}}
+				{{if .IsAbout}}
 				<div class="row">
 					<div class="rowNarrow">
-						# Library/CLI code:
+						Dumpinen is a free text and file dumping service.
+					</div>
+				</div>
+				<div class="row">
+					<div class="rowNarrow">
+						You are not allowed to store illegal content on dumpinen.
+					</div>
+				</div>
+				<div class="row">
+					<div class="rowNarrow">
+						Source code:
 					</div>
 					<div class="rowNarrow">
 						<a href="https://github.com/osm/dumpinen">
 							https://github.com/osm/dumpinen
 						</a>
-					</div>
-				</div>
-				<div class="row">
-					<div class="rowNarrow">
-						# Server code:
 					</div>
 					<div class="rowNarrow">
 						<a href="https://github.com/osm/dumpinen-server">
