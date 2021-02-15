@@ -147,6 +147,13 @@ func (a *app) routePostUI(w http.ResponseWriter, r *http.Request) {
 		data = buf.Bytes()
 	}
 
+	// Don't accept empty uploads.
+	if len(data) == 0 {
+		log.Printf("dump rejected, empty payload\n")
+		a.routeUIErr(w, r, http.StatusBadRequest, "Dump rejected, empty payload")
+		return
+	}
+
 	// Check if the user submitted a deleteAfter value and make sure that
 	// the value is valid.
 	var deleteAfter time.Time
