@@ -15,7 +15,13 @@ const uiHTML = `<!DOCTYPE html>
 	<head>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>dumpinen</title>
+		<title>
+			{{if .IsMain}}dumpinen{{end}}
+			{{if .IsText}}dumpinen - text{{end}}
+			{{if .IsFile}}dumpinen - file{{end}}
+			{{if .IsAbout}}dumpinen - about{{end}}
+			{{if .IsError}}dumpinen - error{{end}}
+		</title>
 		<style type="text/css">
 			a {
 				color: #000000;
