@@ -27,6 +27,9 @@ func (a *app) router(w http.ResponseWriter, r *http.Request) {
 		} else {
 			a.routeUIMain(w, r)
 		}
+	} else if a.uiTpl != nil && r.Method == http.MethodGet && r.URL.Path == "/favicon.ico" {
+		w.Header().Set("Content-Type", "image/x-icon")
+		w.Write([]byte(favicon))
 	} else if a.uiTpl != nil && r.Method == http.MethodGet && r.URL.Path == "/text" {
 		a.routeUIText(w, r)
 	} else if a.uiTpl != nil && r.Method == http.MethodGet && r.URL.Path == "/file" {
