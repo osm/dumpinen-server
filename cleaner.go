@@ -11,8 +11,6 @@ import (
 // has passed.
 func (a *app) cleaner() {
 	for {
-		log.Printf("fetching files to delete")
-
 		filesystemIDs, err := a.db.getFilesystemIDsToDelete()
 		if err != nil {
 			log.Printf("failed to fetch files to delete: %v\n", err)
@@ -20,7 +18,6 @@ func (a *app) cleaner() {
 		}
 
 		if len(filesystemIDs) == 0 {
-			log.Printf("nothing to delete\n")
 			goto sleep
 		}
 
