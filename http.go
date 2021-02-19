@@ -132,8 +132,7 @@ func (a *app) routePostUI(w http.ResponseWriter, r *http.Request) {
 		// data.
 		file, _, err := r.FormFile("file")
 		if err != nil {
-			if err.Error() == "multipart: NextPart: http: request body too large" {
-
+			if strings.Contains(err.Error(), "http: request body too large") {
 				log.Printf("dump rejected, payload too big\n")
 				a.routeUIErr(w, r, http.StatusBadRequest, "Dump rejected, request body too large")
 				return
