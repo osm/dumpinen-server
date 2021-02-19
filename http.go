@@ -115,6 +115,7 @@ func (a *app) routePostUI(w http.ResponseWriter, r *http.Request) {
 			a.routeUIErr(w, r, http.StatusBadRequest, "Dump rejected, request body too large")
 			return
 		}
+		log.Printf("internal server error r.ParseForm, %v\n", err)
 		a.routeUIErr(w, r, http.StatusInternalServerError, "Internal server error")
 		return
 	}
@@ -132,10 +133,12 @@ func (a *app) routePostUI(w http.ResponseWriter, r *http.Request) {
 		file, _, err := r.FormFile("file")
 		if err != nil {
 			if err.Error() == "multipart: NextPart: http: request body too large" {
+
 				log.Printf("dump rejected, payload too big\n")
 				a.routeUIErr(w, r, http.StatusBadRequest, "Dump rejected, request body too large")
 				return
 			}
+			log.Printf("internal server error r.FormFile, %v\n", err)
 			a.routeUIErr(w, r, http.StatusInternalServerError, "Internal server error")
 			return
 		}
@@ -143,6 +146,7 @@ func (a *app) routePostUI(w http.ResponseWriter, r *http.Request) {
 
 		buf := bytes.NewBuffer(nil)
 		if _, err := io.Copy(buf, file); err != nil {
+			log.Printf("internal server error io.Copy, %v\n", err)
 			a.routeUIErr(w, r, http.StatusInternalServerError, "Internal server error")
 			return
 		}
