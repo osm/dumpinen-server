@@ -213,10 +213,10 @@ const uiHTML = `<!DOCTYPE html>
 						</div>
 						<div class="rowNarrow">
 							<select name="deleteAfter">
+								<option value="">Infinite</option>
 								<option value="10m">Ten minutes</option>
 								<option value="1h">One hour</option>
 								<option value="24h">24 hours</option>
-								<option value="">Infinite</option>
 							</select>
 						</div>
 					</div>
