@@ -217,6 +217,7 @@ const uiHTML = `<!DOCTYPE html>
 								<option value="10m">Ten minutes</option>
 								<option value="1h">One hour</option>
 								<option value="24h">24 hours</option>
+								<option value="168h">One week</option>
 							</select>
 						</div>
 					</div>
