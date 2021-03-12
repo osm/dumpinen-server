@@ -37,7 +37,12 @@ func (a *app) router(w http.ResponseWriter, r *http.Request) {
 	} else if a.uiTpl != nil && r.Method == http.MethodGet && r.URL.Path == "/about" {
 		a.routeUIAbout(w, r)
 	} else if r.Method == http.MethodPost && r.URL.Path == "/" {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		a.routePost(w, r)
+	} else if r.Method == http.MethodOptions && r.URL.Path == "/" {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length")
 	} else if r.Method == http.MethodPost && r.URL.Path == "/dump" {
 		a.routePostUI(w, r)
 	} else {
