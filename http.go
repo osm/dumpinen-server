@@ -427,7 +427,17 @@ func (a *app) routeGet(w http.ResponseWriter, r *http.Request) {
 	// Serve the requested file.
 	w.Header().Set("Content-Type", dump.contentType)
 	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(data)))
-	w.Header().Set("Content-Disposition", "inline")
+
+	var saveAs string
+	if s, ok := r.URL.Query()["saveAs"]; ok {
+		saveAs = s[0]
+	}
+	if saveAs == "" {
+		w.Header().Set("Content-Disposition", "inline")
+	} else {
+		w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, saveAs))
+	}
+
 	w.WriteHeader(http.StatusOK)
 	w.Write(data)
 }
