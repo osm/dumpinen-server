@@ -235,7 +235,15 @@ func (a *app) routePostUI(w http.ResponseWriter, r *http.Request) {
 
 	// Redirect the user to the dumped file.
 	log.Printf("dump stored with public id at %s\n", publicID)
-	http.Redirect(w, r, fmt.Sprintf("%s://%s/%s", a.urlScheme, r.Host, publicID), 301)
+
+	contentURL := fmt.Sprintf("%s://%s/%s", a.urlScheme, r.Host, publicID)
+	// Just print the URL for zip files.
+	if contentType == "application/zip" {
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.Write([]byte(contentURL))
+	} else {
+		http.Redirect(w, r, fmt.Sprintf("%s://%s/%s", a.urlScheme, r.Host, publicID), 301)
+	}
 }
 
 // routePost handles the v1 dump POST request.
