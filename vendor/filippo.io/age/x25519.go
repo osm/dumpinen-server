@@ -1,8 +1,6 @@
-// Copyright 2019 Google LLC
-//
+// Copyright 2019 The age Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file or at
-// https://developers.google.com/open-source/licenses/bsd
+// license that can be found in the LICENSE file.
 
 package age
 
@@ -34,8 +32,6 @@ type X25519Recipient struct {
 
 var _ Recipient = &X25519Recipient{}
 
-func (*X25519Recipient) Type() string { return "X25519" }
-
 // newX25519RecipientFromPoint returns a new X25519Recipient from a raw Curve25519 point.
 func newX25519RecipientFromPoint(publicKey []byte) (*X25519Recipient, error) {
 	if len(publicKey) != curve25519.PointSize {
@@ -65,7 +61,7 @@ func ParseX25519Recipient(s string) (*X25519Recipient, error) {
 	return r, nil
 }
 
-func (r *X25519Recipient) Wrap(fileKey []byte) (*Stanza, error) {
+func (r *X25519Recipient) Wrap(fileKey []byte) ([]*Stanza, error) {
 	ephemeral := make([]byte, curve25519.ScalarSize)
 	if _, err := rand.Read(ephemeral); err != nil {
 		return nil, err
@@ -100,7 +96,7 @@ func (r *X25519Recipient) Wrap(fileKey []byte) (*Stanza, error) {
 	}
 	l.Body = wrappedKey
 
-	return l, nil
+	return []*Stanza{l}, nil
 }
 
 // String returns the Bech32 public key encoding of r.
@@ -116,8 +112,6 @@ type X25519Identity struct {
 }
 
 var _ Identity = &X25519Identity{}
-
-func (*X25519Identity) Type() string { return "X25519" }
 
 // newX25519IdentityFromScalar returns a new X25519Identity from a raw Curve25519 scalar.
 func newX25519IdentityFromScalar(secretKey []byte) (*X25519Identity, error) {
@@ -158,7 +152,11 @@ func ParseX25519Identity(s string) (*X25519Identity, error) {
 	return r, nil
 }
 
-func (i *X25519Identity) Unwrap(block *Stanza) ([]byte, error) {
+func (i *X25519Identity) Unwrap(stanzas []*Stanza) ([]byte, error) {
+	return multiUnwrap(i.unwrap, stanzas)
+}
+
+func (i *X25519Identity) unwrap(block *Stanza) ([]byte, error) {
 	if block.Type != "X25519" {
 		return nil, ErrIncorrectIdentity
 	}
@@ -188,7 +186,9 @@ func (i *X25519Identity) Unwrap(block *Stanza) ([]byte, error) {
 	}
 
 	fileKey, err := aeadDecrypt(wrappingKey, fileKeySize, block.Body)
-	if err != nil {
+	if err == errIncorrectCiphertextSize {
+		return nil, errors.New("invalid X25519 recipient block: incorrect file key size")
+	} else if err != nil {
 		return nil, ErrIncorrectIdentity
 	}
 	return fileKey, nil

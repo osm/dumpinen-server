@@ -1,15 +1,13 @@
-// Copyright 2019 Google LLC
-//
+// Copyright 2019 The age Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file or at
-// https://developers.google.com/open-source/licenses/bsd
+// license that can be found in the LICENSE file.
 
 package age
 
 import (
 	"crypto/hmac"
 	"crypto/sha256"
-	"fmt"
+	"errors"
 	"io"
 
 	"filippo.io/age/internal/format"
@@ -32,6 +30,8 @@ func aeadEncrypt(key, plaintext []byte) ([]byte, error) {
 	return aead.Seal(nil, nonce, plaintext, nil), nil
 }
 
+var errIncorrectCiphertextSize = errors.New("encrypted value has unexpected length")
+
 // aeadDecrypt decrypts a message of an expected fixed size.
 //
 // The message size is limited to mitigate multi-key attacks, where a ciphertext
@@ -43,7 +43,7 @@ func aeadDecrypt(key []byte, size int, ciphertext []byte) ([]byte, error) {
 		return nil, err
 	}
 	if len(ciphertext) != size+aead.Overhead() {
-		return nil, fmt.Errorf("encrypted message has unexpected length")
+		return nil, errIncorrectCiphertextSize
 	}
 	nonce := make([]byte, chacha20poly1305.NonceSize)
 	return aead.Open(nil, nonce, ciphertext, nil)

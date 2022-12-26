@@ -1,8 +1,10 @@
-# age
+<p align="center"><img alt="The age logo, an wireframe of St. Peters dome in Rome, with the text: age, file encryption" width="600" src="https://user-images.githubusercontent.com/1225294/132245842-fda4da6a-1cea-4738-a3da-2dc860861c98.png"></p>
 
-[![pkg.go.dev](https://pkg.go.dev/badge/filippo.io/age)](https://pkg.go.dev/filippo.io/age)
+[![Go Reference](https://pkg.go.dev/badge/filippo.io/age.svg)](https://pkg.go.dev/filippo.io/age)
+[![man page](<https://img.shields.io/badge/age(1)-man%20page-lightgrey>)](https://filippo.io/age/age.1)
+[![C2SP specification](https://img.shields.io/badge/%C2%A7%23-specification-blueviolet)](https://age-encryption.org/v1)
 
-age is a simple, modern and secure file encryption tool, format, and library.
+age is a simple, modern and secure file encryption tool, format, and Go library.
 
 It features small explicit keys, no config options, and UNIX-style composability.
 
@@ -13,28 +15,150 @@ $ tar cvz ~/data | age -r age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9
 $ age --decrypt -i key.txt data.tar.gz.age > data.tar.gz
 ```
 
-The format specification is at [age-encryption.org/v1](https://age-encryption.org/v1). To discuss the spec or other age related topics, please email [the mailing list](https://groups.google.com/d/forum/age-dev) at age-dev@googlegroups.com. age was designed by [@Benjojo12](https://twitter.com/Benjojo12) and [@FiloSottile](https://twitter.com/FiloSottile).
+📜 The format specification is at [age-encryption.org/v1](https://age-encryption.org/v1). age was designed by [@Benjojo12](https://twitter.com/Benjojo12) and [@FiloSottile](https://twitter.com/FiloSottile).
 
-An alternative interoperable Rust implementation is available at [github.com/str4d/rage](https://github.com/str4d/rage).
+📬 Follow the maintenance of this project by subscribing to [Maintainer Dispatches](https://filippo.io/newsletter)!
+
+🦀 An alternative interoperable Rust implementation is available at [github.com/str4d/rage](https://github.com/str4d/rage).
+
+🔑 Hardware PIV tokens such as YubiKeys are supported through the [age-plugin-yubikey](https://github.com/str4d/age-plugin-yubikey) plugin.
+
+💬 The author pronounces it `[aɡe̞]`, like the Italian [“aghe”](https://translate.google.com/?sl=it&text=aghe).
+
+## Installation
+
+<table>
+    <tr>
+        <td>Homebrew (macOS or Linux)</td>
+        <td>
+            <code>brew install age</code>
+        </td>
+    </tr>
+    <tr>
+        <td>MacPorts</td>
+        <td>
+            <code>port install age</code>
+        </td>
+    </tr>
+    <tr>
+        <td>Alpine Linux v3.15+</td>
+        <td>
+            <code>apk add age</code>
+        </td>
+    </tr>
+    <tr>
+        <td>Arch Linux</td>
+        <td>
+            <code>pacman -S age</code>
+        </td>
+    </tr>
+    <tr>
+        <td>Debian 11+ (Bullseye)</td>
+        <td>
+            <code>apt install age/bullseye-backports</code>
+            (<a href="https://backports.debian.org/Instructions/#index2h2">enable backports</a> for age v1.0.0+)
+        </td>
+    </tr>
+    <tr>
+        <td>Fedora 33+</td>
+        <td>
+            <code>dnf install age</code>
+        </td>
+    </tr>
+    <tr>
+        <td>Gentoo Linux</td>
+        <td>
+            <code>emerge app-crypt/age</code>
+        </td>
+    </tr>
+    <tr>
+        <td>NixOS / Nix</td>
+        <td>
+            <code>nix-env -i age</code>
+        </td>
+    </tr>
+    <tr>
+        <td>openSUSE Tumbleweed</td>
+        <td>
+            <code>zypper install age</code>
+        </td>
+    </tr>
+    <tr>
+        <td>Ubuntu 22.04+</td>
+        <td>
+            <code>apt install age</code>
+        </td>
+    </tr>
+    <tr>
+        <td>Void Linux</td>
+        <td>
+            <code>xbps-install age</code>
+        </td>
+    </tr>
+    <tr>
+        <td>FreeBSD</td>
+        <td>
+            <code>pkg install age</code> (security/age)
+        </td>
+    </tr>
+    <tr>
+        <td>OpenBSD 6.7+</td>
+        <td>
+            <code>pkg_add age</code> (security/age)
+        </td>
+    </tr>
+    <tr>
+        <td>Chocolatey (Windows)</td>
+        <td>
+            <code>choco install age.portable</code>
+        </td>
+    </tr>
+    <tr>
+        <td>Scoop (Windows)</td>
+        <td>
+            <code>scoop bucket add extras; scoop install age</code>
+        </td>
+    </tr>
+</table>
+
+On Windows, Linux, macOS, and FreeBSD you can use the pre-built binaries.
+
+```
+https://dl.filippo.io/age/latest?for=linux/amd64
+https://dl.filippo.io/age/v1.0.0-rc.1?for=darwin/arm64
+...
+```
+
+If your system has [a supported version of Go](https://go.dev/dl/), you can build from source.
+
+```
+go install filippo.io/age/cmd/...@latest
+```
+
+Help from new packagers is very welcome.
 
 ## Usage
 
+For the full documentation, read [the age(1) man page](https://filippo.io/age/age.1).
+
 ```
 Usage:
-    age (-r RECIPIENT | -R PATH)... [--armor] [-o OUTPUT] [INPUT]
-    age --passphrase [--armor] [-o OUTPUT] [INPUT]
+    age [--encrypt] (-r RECIPIENT | -R PATH)... [--armor] [-o OUTPUT] [INPUT]
+    age [--encrypt] --passphrase [--armor] [-o OUTPUT] [INPUT]
     age --decrypt [-i PATH]... [-o OUTPUT] [INPUT]
 
 Options:
+    -e, --encrypt               Encrypt the input to the output. Default if omitted.
+    -d, --decrypt               Decrypt the input to the output.
     -o, --output OUTPUT         Write the result to the file at path OUTPUT.
     -a, --armor                 Encrypt to a PEM encoded format.
     -p, --passphrase            Encrypt with a passphrase.
     -r, --recipient RECIPIENT   Encrypt to the specified RECIPIENT. Can be repeated.
     -R, --recipients-file PATH  Encrypt to recipients listed at PATH. Can be repeated.
-    -d, --decrypt               Decrypt the input to the output.
     -i, --identity PATH         Use the identity file at PATH. Can be repeated.
 
 INPUT defaults to standard input, and OUTPUT defaults to standard output.
+If OUTPUT exists, it will be overwritten.
 
 RECIPIENT can be an age public key generated by age-keygen ("age1...")
 or an SSH public key ("ssh-ed25519 AAAA...", "ssh-rsa AAAA...").
@@ -45,8 +169,12 @@ read recipients from standard input.
 
 Identity files contain one or more secret keys ("AGE-SECRET-KEY-1..."),
 one per line, or an SSH key. Empty lines and lines starting with "#" are
-ignored as comments. Multiple key files can be provided, and any unused ones
+ignored as comments. Passphrase encrypted age files can be used as
+identity files. Multiple key files can be provided, and any unused ones
 will be ignored. "-" may be used to read identities from standard input.
+
+When --encrypt is specified explicitly, -i can also be used to encrypt to an
+identity file symmetrically, instead or in addition to normal recipients.
 ```
 
 ### Multiple recipients
@@ -85,6 +213,22 @@ $ age -d secrets.txt.age > secrets.txt
 Enter passphrase:
 ```
 
+### Passphrase-protected key files
+
+If an identity file passed to `-i` is a passphrase encrypted age file, it will be automatically decrypted.
+
+```
+$ age-keygen | age -p > key.age
+Public key: age1yhm4gctwfmrpz87tdslm550wrx6m79y9f2hdzt0lndjnehwj0ukqrjpyx5
+Enter passphrase (leave empty to autogenerate a secure one):
+Using the autogenerated passphrase "hip-roast-boring-snake-mention-east-wasp-honey-input-actress".
+$ age -r age1yhm4gctwfmrpz87tdslm550wrx6m79y9f2hdzt0lndjnehwj0ukqrjpyx5 secrets.txt > secrets.txt.age
+$ age -d -i key.age secrets.txt.age > secrets.txt
+Enter passphrase for identity file "key.age":
+```
+
+Passphrase-protected identity files are not necessary for most use cases, where access to the encrypted identity file implies access to the whole system. However, they can be useful if the identity file is stored remotely.
+
 ### SSH keys
 
 As a convenience feature, age also supports encrypting to `ssh-rsa` and `ssh-ed25519` SSH public keys, and decrypting with the respective private key file. (`ssh-agent` is not supported.)
@@ -105,43 +249,3 @@ $ curl https://github.com/benjojo.keys | age -R - example.jpg > example.jpg.age
 ```
 
 Keep in mind that people might not protect SSH keys long-term, since they are revokable when used only for authentication, and that SSH keys held on YubiKeys can't be used to decrypt files.
-
-## Installation
-
-On macOS or Linux, you can use Homebrew:
-
-```
-brew tap filippo.io/age https://filippo.io/age
-brew install age
-```
-
-On Windows, Linux, and macOS, you can use [the pre-built binaries](https://github.com/FiloSottile/age/releases).
-
-If your system has [Go 1.13+](https://golang.org/dl/), you can build from source:
-
-```
-git clone https://filippo.io/age && cd age
-go build -o . filippo.io/age/cmd/...
-```
-
-On Arch Linux, age is available from AUR as [`age`](https://aur.archlinux.org/packages/age/) or [`age-git`](https://aur.archlinux.org/packages/age-git/):
-
-```bash
-git clone https://aur.archlinux.org/age.git
-cd age
-makepkg -si
-```
-
-On OpenBSD -current and 6.7+, you can use the port:
-
-```
-pkg_add age
-```
-
-On all supported versions of FreeBSD, you can build the security/age port or use pkg:
-
-```
-pkg install age
-```
-
-Help from new packagers is very welcome.
