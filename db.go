@@ -36,6 +36,12 @@ type dumpAccessLog struct {
 	insertedAt string
 }
 
+// dumpInfo is the model that holds some basic info about a dump.
+type dumpInfo struct {
+	createdAt time.Time
+	count     int
+}
+
 // newDB initializes a new database connection with the provided connection
 // string.
 func newDB(cs string) (*db, error) {
@@ -197,4 +203,20 @@ func (d *db) insertDumpAccessLog(dal *dumpAccessLog) error {
 	}
 
 	return nil
+}
+
+func (d *db) getDumpInfoByPublicID(publicID string) (*dumpInfo, error) {
+	var di dumpInfo
+
+	query := `SELECT inserted_at FROM dump WHERE public_id = $1`
+	if err := d.conn.QueryRow(query, publicID).Scan(&di.createdAt); err != nil {
+		return nil, err
+	}
+
+	query = `SELECT COUNT(1) FROM dump_access_log a INNER JOIN dump d ON d.id = a.dump_id WHERE d.public_id = $1`
+	if err := d.conn.QueryRow(query, publicID).Scan(&di.count); err != nil {
+		return nil, err
+	}
+
+	return &di, nil
 }

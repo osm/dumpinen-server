@@ -416,6 +416,38 @@ func (a *app) routeGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// If there's a query parameter named "info" we'll return stats about
+	// the dump instead of the actual dump.
+	if _, ok := r.URL.Query()["info"]; ok {
+		dumpInfo, err := a.db.getDumpInfoByPublicID(publicID)
+		if err != nil {
+			log.Printf("unable to get info for %s\n", dump.filesystemID)
+			notFound(w)
+			return
+		}
+
+		if r.Header.Get("Content-Type") == "application/json" {
+			w.Header().Set("Content-Type", "application/json")
+			w.Write([]byte(
+				fmt.Sprintf("{\"id\": \"%s\", \"createdAt\": \"%s\", \"count\": \"%d\"}\r\n",
+					publicID,
+					dumpInfo.createdAt.UTC(),
+					dumpInfo.count,
+				),
+			))
+		} else {
+			w.Header().Set("Content-Type", "text/plain")
+			w.Write([]byte(
+				fmt.Sprintf("id:\t\t%s\ntimestamp:\t%s\ncount:\t\t%d\r\n",
+					publicID,
+					dumpInfo.createdAt.UTC(),
+					dumpInfo.count,
+				),
+			))
+		}
+		return
+	}
+
 	// Read the file from the filesystem.
 	data, err := ioutil.ReadFile(filepath.Join(a.dataDir, dump.filesystemID))
 	if err != nil {
