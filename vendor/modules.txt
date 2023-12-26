@@ -6,7 +6,7 @@ filippo.io/age/internal/format
 filippo.io/age/internal/stream
 # github.com/creack/pty v1.1.18
 ## explicit
-# github.com/lib/pq v1.10.7
+# github.com/lib/pq v1.10.9
 ## explicit
 github.com/lib/pq
 github.com/lib/pq/oid
@@ -22,7 +22,7 @@ github.com/osm/migrator/repository
 ## explicit
 # github.com/sergi/go-diff v1.2.0
 ## explicit
-# golang.org/x/crypto v0.7.0
+# golang.org/x/crypto v0.17.0
 ## explicit
 golang.org/x/crypto/acme
 golang.org/x/crypto/acme/autocert
@@ -36,11 +36,12 @@ golang.org/x/crypto/internal/poly1305
 golang.org/x/crypto/pbkdf2
 golang.org/x/crypto/poly1305
 golang.org/x/crypto/scrypt
-# golang.org/x/net v0.8.0
+# golang.org/x/net v0.19.0
+## explicit
 golang.org/x/net/idna
-# golang.org/x/sys v0.6.0
+# golang.org/x/sys v0.15.0
 golang.org/x/sys/cpu
-# golang.org/x/text v0.8.0
+# golang.org/x/text v0.14.0
 golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
